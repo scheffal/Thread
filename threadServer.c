@@ -1,3 +1,13 @@
+/******************************************
+ * Blocking Multithreaded Server
+ * CIS 452-10 Lab 4
+ * 9/27/2018
+ *
+ * Authors:
+ * Ali Scheffler
+ * Anthony Blanton
+ * **************************************/
+
 #include <pthread.h> 
 #include <stdio.h> 
 #include <errno.h> 
@@ -7,30 +17,35 @@
 #include <signal.h>
 
 void* getFile (void* arg); 
-// arguments:    arg is an untyped pointer 
-// returns:         a pointer to whatever was passed in to arg 
-// side effects:  prints a greeting message
 void sigHandlerExit();
 
 #define MAX 64 
 
+//Shared data
 int fileCount = 0;
+int fileReq = 0;
+
+//Used to lock shared data 
 static pthread_mutex_t lock;
 
 int main() 
 { 
  	pthread_t thread1;  // thread ID holder 
  	int status;         // captures any error code
-	srand(0);
+	srand(0);	    // seed random number generator
+
+	//Install signal handler
 	signal(SIGINT, sigHandlerExit);
 
 	while(1)
 	{
-
+		//Get filename
     		printf("Please enter a filename\n");
     		char buffer[MAX];
 		fgets(buffer, MAX, stdin);
 		fflush(stdin);
+
+		fileReq++;
 
 		void* arg = (void*) buffer;
 
@@ -51,13 +66,16 @@ int main()
 
 void sigHandlerExit()
 {
-	printf("\tTerminating... File count: %d\n", fileCount);
+	printf("\tTerminating...\n");
+	printf("File Requests Received: %d\n", fileReq);
+	printf("File Requests Serviced: %d\n", fileCount);
 	exit(0);
 }
 
 void* getFile (void * arg) 
 {
 
+	//Get random number between 0 and 9
 	int prob = rand() % 10;
 
 	if(prob < 8)
@@ -68,14 +86,14 @@ void* getFile (void * arg)
 		int sleepTime = rand() % 4;
 		sleep(sleepTime + 7);
 	}
-	
+
+	//Lock while thread is running critical section	
 	pthread_mutex_lock(&lock);
 	fileCount++;
 	pthread_mutex_unlock(&lock);
 
 	printf("File found: %s\n", arg);
 
-	
-
 	return arg;
 }
+
