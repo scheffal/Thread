@@ -24,6 +24,7 @@ void sigHandlerExit();
 //Shared data
 int fileCount = 0;
 int fileReq = 0;
+int simTime = 0;
 
 //Used to lock shared data 
 static pthread_mutex_t lock;
@@ -40,8 +41,8 @@ int main()
 	while(1)
 	{
 		//Get filename
-    		printf("Please enter a filename\n");
-    		char buffer[MAX];
+    	printf("Please enter a filename\n");
+		char buffer[MAX];
 		fgets(buffer, MAX, stdin);
 		fflush(stdin);
 
@@ -69,6 +70,7 @@ void sigHandlerExit()
 	printf("\tTerminating...\n");
 	printf("File Requests Received: %d\n", fileReq);
 	printf("File Requests Serviced: %d\n", fileCount);
+	printf("Average lookup time %.2f\n", (double) simTime / fileCount);
 	exit(0);
 }
 
@@ -94,7 +96,9 @@ void* getFile (void * arg)
 	simTime += sleepTime;
 	pthread_mutex_unlock(&lock);
 
-	printf("File found: %s\n", arg);
+	printf("File found: %s\n", (char *) arg);
+
+	free(arg);
 
 	return arg;
 }
