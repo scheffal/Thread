@@ -48,10 +48,11 @@ int main()
 
 		fileReq++;
 
-		void* arg = (void*) buffer;
-
 		// create and start a thread executing the "do_greeting()" function 
-		// use of strdup from https://stackoverflow.com/q/5687186
+		// Use of strdup from https://stackoverflow.com/q/5687186
+		// While waiting for the thread to execute, the buffer was being overwritten
+		// by new user input, causing multiple threads to use the new buffer data.
+		// strdup prevents that.
 		if ((status = pthread_create (&thread1, NULL,  getFile, (void *)strdup(buffer)) != 0)) { 
 			fprintf (stderr, "thread create error %d: %s\n", status, strerror(status)); 
 			exit (1); 
@@ -98,6 +99,7 @@ void* getFile (void * arg)
 
 	printf("File found: %s\n", (char *) arg);
 
+	// free the strdup arg from pthread_create
 	free(arg);
 
 	return arg;
