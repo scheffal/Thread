@@ -24,7 +24,6 @@ void sigHandlerExit();
 //Shared data
 int fileCount = 0;
 int fileReq = 0;
-int simTime = 0;
 
 //Used to lock shared data 
 static pthread_mutex_t lock;
@@ -41,12 +40,14 @@ int main()
 	while(1)
 	{
 		//Get filename
-    	printf("Please enter a filename\n");
-    	char buffer[MAX];
+    		printf("Please enter a filename\n");
+    		char buffer[MAX];
 		fgets(buffer, MAX, stdin);
 		fflush(stdin);
 
 		fileReq++;
+
+		void* arg = (void*) buffer;
 
 		// create and start a thread executing the "do_greeting()" function 
 		// use of strdup from https://stackoverflow.com/q/5687186
@@ -68,7 +69,6 @@ void sigHandlerExit()
 	printf("\tTerminating...\n");
 	printf("File Requests Received: %d\n", fileReq);
 	printf("File Requests Serviced: %d\n", fileCount);
-	printf("Average lookup time: %f\n", (double) simTime / fileCount);
 	exit(0);
 }
 
@@ -94,8 +94,8 @@ void* getFile (void * arg)
 	simTime += sleepTime;
 	pthread_mutex_unlock(&lock);
 
-	printf("File found: %s\n", (char *) arg);
-	free(arg);
+	printf("File found: %s\n", arg);
 
 	return arg;
 }
+
